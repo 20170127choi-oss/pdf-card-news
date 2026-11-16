@@ -102,15 +102,19 @@ module.exports = async function handler(req, res) {
       })
     });
 
-    if (!geminiResponse.ok) {
-      const errBody = await geminiResponse.json().catch(() => ({}));
-      const code = geminiResponse.status;
-      if (code === 429) return send(res, 429, { error: "Gemini API 사용량 한도에 도달했습니다. 잠시 후 다시 시도해 주세요." });
-      if (code === 400) return send(res, 400, { error: "Gemini가 PDF를 처리하지 못했습니다. 파일이 손상되지 않았는지 확인해 주세요." });
-      if (code === 401 || code === 403) return send(res, 502, { error: "Gemini API 인증에 실패했습니다. 서버의 API 키와 사용 권한을 확인해 주세요." });
-      console.error("Gemini API request failed:", code, errBody.error?.status || "unknown");
-      return send(res, 502, { error: "Gemini 분석 요청에 실패했습니다. 잠시 후 다시 시도해 주세요." });
-    }
+
+if (!geminiResponse.ok) {
+  const errBody = await geminiResponse.json().catch(() => ({}));
+  const code = geminiResponse.status;
+  const detail = errBody.error?.message || "상세 오류 정보 없음";
+
+  console.error("Gemini API 오류:", code, detail);
+
+  return send(res, code >= 500 ? 502 : code, {
+    error: `Gemini API 오류 (${code}): ${detail}`
+  });
+}
+
 
     const responseData = await geminiResponse.json();
     const text = responseData.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("").trim();
