@@ -1,7 +1,7 @@
 // Vercel Serverless Function: POST /api/generate
 // Configure GEMINI_API_KEY in Vercel Project Settings > Environment Variables.
 const MAX_BYTES = 15 * 1024 * 1024;
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 function send(res, status, body) {
   return res.status(status).json(body);
